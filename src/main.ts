@@ -4,6 +4,17 @@ const DESCRIPTION_TEXT = `Use curly brackets to add date formats. eg: "{YYYY-MM-
 Additionally accepts a special format to indicate "prior monday". eg: "{mon:YYYY-MM-DD}"
 Include the '.md' extension in your filename if you use that.`;
 
+// iso weekday spec
+const DAYS = {
+	mon: 1,
+	tue: 2,
+	wed: 3,
+	thu: 4,
+	fri: 5,
+	sat: 6,
+	sun: 7,
+}
+
 interface MagicFileHotkeySettings {
 	files: string[];
 	useExistingPane: boolean;
@@ -144,16 +155,22 @@ class SettingsTab extends PluginSettingTab {
 	}
 }
 
-// TODO: use a lib
 // convert the input format YYYY to the current date
 function lockInDate(inputString: string): string {
 	const now = moment();
-	const priorMonday = moment().startOf('isoWeek');  
+
 	let str = inputString;
 
+	// If there's a weekday prefix, send that to the preceding, matching day
 	// send anything in curlies "{mon:...}" to moment.format for the preceeding monday
 	// eg: `Weekly Notes/{mon:YYYY-MM-DD} week.md`
-	str = str.replace(/{mon:(.*)}/g, (match, captured) => priorMonday.format(captured));
+	str = str.replace(/{mon:(.*)}/g, (_match, captured) => getPreviousWeekday(DAYS.mon).format(captured));
+	str = str.replace(/{tue:(.*)}/g, (_match, captured) => getPreviousWeekday(DAYS.tue).format(captured));
+	str = str.replace(/{wed:(.*)}/g, (_match, captured) => getPreviousWeekday(DAYS.wed).format(captured));
+	str = str.replace(/{thu:(.*)}/g, (_match, captured) => getPreviousWeekday(DAYS.thu).format(captured));
+	str = str.replace(/{fri:(.*)}/g, (_match, captured) => getPreviousWeekday(DAYS.fri).format(captured));
+	str = str.replace(/{sat:(.*)}/g, (_match, captured) => getPreviousWeekday(DAYS.sat).format(captured));
+	str = str.replace(/{sun:(.*)}/g, (_match, captured) => getPreviousWeekday(DAYS.sun).format(captured));
 
 	// send anything in curlies "{...}" to moment.format
 	// eg: `Daily Notes/{YYYY-MM-DD}.md`
@@ -161,4 +178,19 @@ function lockInDate(inputString: string): string {
 	str = str.replace(/{(.*)}/g, (_match, captured) => now.format(captured));
 
 	return str;
+}
+
+// Get the date of the previous day of the week you'd like. (eg: the most recent Monday)
+// isoWeekday: 1 for Monday, 7 for Sunday.
+function getPreviousWeekday(day: number) {
+	const t = moment();
+	let guess = t.isoWeekday()
+	let i = 0;
+
+	while (day !== guess && i <= 7) {
+		t.subtract(1, 'days');
+		guess = t.isoWeekday();
+		i++; // infinite loop blocker
+	}
+	return t;
 }

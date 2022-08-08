@@ -61,6 +61,8 @@ git tag -a 0.0.4 -m "0.0.4"
 git push origin 0.0.4
 ```
 
+> verify the workflow is running [here](https://github.com/SimplGy/obsidian-open-file-by-magic-date/actions). Verify [releases here](https://github.com/SimplGy/obsidian-open-file-by-magic-date/releases)
+
 ## Thanks and credit
 
 Originally forked and learned from [Hotkeys for specific files](https://github.com/Vinzent03/obsidian-hotkeys-for-specific-files). Thank you, [Vinzent03](https://github.com/Vinzent03).
