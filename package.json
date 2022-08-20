@@ -1,6 +1,6 @@
 {
   "name": "obsidian-open-file-by-magic-date",
-  "version": "0.0.4",
+  "version": "0.1.0",
   "description": "",
   "main": "main.js",
   "scripts": {

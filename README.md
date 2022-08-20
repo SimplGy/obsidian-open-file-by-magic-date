@@ -45,8 +45,14 @@ npm install
 npm run dev
 ```
 
-1. install `git clone https://github.com/pjeby/hot-reload.git` for a nicer time.
-2. turn it on, restart obsidian
+(for auto refreshing) install `git clone https://github.com/pjeby/hot-reload.git` and turn it on
+
+### TODOs
+
+- [x] Fix: the hotkey does not rename correctly when you edit the path (requires Obsidian restart)
+- [x] Fix: the hotkey does not stick around correctly when you edit the path (requires choosing a hotkey again after restart)
+- [x] Detect when the file exists, to help people check their syntax easily. ([example implementation](https://github.com/SilentVoid13/Templater/commit/e4273b706465df012648b8a0163018f4925b5808) of file.exists from the templater plugin)
+
 
 ### Releasing
 

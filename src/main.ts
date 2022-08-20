@@ -36,7 +36,7 @@ export default class MagicFileHotkeyPlugin extends Plugin {
 		await this.loadSettings();
 		console.log('loading ' + this.manifest.name);
 		this.addSettingTab(new SettingsTab(this.app, this));
-		this.setCommands(this);
+		this.resetCommands();
 	}
 
 	onunload() {
@@ -48,21 +48,24 @@ export default class MagicFileHotkeyPlugin extends Plugin {
 		this.settings = {...DEFAULT_SETTINGS, ...await this.loadData()};
 	}
 
+	// note: this is called ~every keystroke, so be aware
 	async saveSettings() {
 		await this.saveData(this.settings);
+		// update the commands, which is what hotkeys are set against
+		this.resetCommands();
 	}
 
-	setCommands(plugin: MagicFileHotkeyPlugin) {
+	resetCommands() {
 		for (const fileNameSpec of this.settings.files) {
 
-			const fileName = lockInDate(fileNameSpec);
 			const fileNameSpecNoExt = fileNameSpec.substring(0, fileNameSpec.lastIndexOf("."));
 
-			plugin.addCommand({
-				id: fileNameSpec, // should not change over time
+			// repeatedly calling with the same ID appears to be effectively an "update" operation
+			this.addCommand({
+				id: 'open-by-magic-date', // should not change over time
 				name: `Open '${fileNameSpecNoExt}'`,
-				// hotkeys: [{ modifiers: ["Mod", "Alt"], key: "o" }],
 				callback: () => {
+					const fileName = lockInDate(fileNameSpec);
 					if (this.settings.useExistingPane) {
 						let found = false;
 						this.app.workspace.iterateAllLeaves(leaf => {
@@ -76,10 +79,10 @@ export default class MagicFileHotkeyPlugin extends Plugin {
 							}
 						});
 						if (!found) {
-							plugin.app.workspace.openLinkText(fileName, "");
+							this.app.workspace.openLinkText(fileName, "");
 						}
 					} else {
-						plugin.app.workspace.openLinkText(fileName, "");
+						this.app.workspace.openLinkText(fileName, "");
 					}
 				}
 			});
@@ -123,12 +126,21 @@ class SettingsTab extends PluginSettingTab {
 						// Tell user how/if we parsed it
 						const parsedName = lockInDate(value);
 						outputPrinter.innerText = `"${parsedName}"`;
+
+						// Nothing Parsed, so we aren't using the date syntax
 						if (parsedName === value) {
 							outputPrinter.style.color = 'inherit';
+
+						// Parser changed something, so date syntax is active
 						} else {
 							// colored purple if date syntax is active
-							// TODO: color green if it also matches an existing file
 							outputPrinter.style.color = 'var(--text-accent)';
+						}
+						
+						// Checkmark if it also matches an existing file
+						// this is a little funny, I think because Obsidian can match filenames with and without directories
+						if(exists(parsedName)) {
+							outputPrinter.innerText = `"${parsedName}" ✅`;
 						}
 
 						this.plugin.saveSettings();
@@ -193,4 +205,10 @@ function getPreviousWeekday(day: number) {
 		i++; // infinite loop blocker
 	}
 	return t;
+}
+
+// Check if a file exists. Depends on `app` global.
+function exists(filename: string) {
+	const ref = app.metadataCache.getFirstLinkpathDest(filename, "");
+	return ref != null;
 }
