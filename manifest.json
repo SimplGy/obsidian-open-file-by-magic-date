@@ -1,7 +1,7 @@
 {
   "id": "obsidian-open-file-by-magic-date",
   "name": "Open File by Magic Date",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Define a Moment.js date pattern that specifies the file that is most important to you (eg: your daily/weekly/monthly note). Will create the file if it doesn't exist.",
   "author": "simplgy",
   "authorUrl": "https://github.com/simplgy",

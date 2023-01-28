@@ -66,26 +66,47 @@ export default class MagicFileHotkeyPlugin extends Plugin {
 				name: `Open '${fileNameSpecNoExt}'`,
 				callback: () => {
 					const fileName = lockInDate(fileNameSpec);
-					if (this.settings.useExistingPane) {
-						let found = false;
-						this.app.workspace.iterateAllLeaves(leaf => {
-							const file: TFile = (leaf.view as any).file;
-							if (file?.path === fileName) {
-								this.app.workspace.revealLeaf(leaf);
-								if (leaf.view instanceof MarkdownView) {
-									leaf.view.editor.focus();
-								}
-								found = true;
-							}
-						});
-						if (!found) {
-							this.app.workspace.openLinkText(fileName, "");
-						}
-					} else {
-						this.app.workspace.openLinkText(fileName, "");
-					}
+					this.openFile(fileName);
 				}
 			});
+		}
+	}
+
+	// Desired behavior: focus the tab if it's already open. Open a new tab if it's not.
+	// This would be simple, except for one thing:
+	// the file you want to open might ALREADY be open in another tab.
+	// That's the reason for "iterateAllLeaves"
+	openFile(fileName: string) {
+		
+		// See if there's a tab open with this file in it:
+		let found = false;
+		this.app.workspace.iterateAllLeaves(leaf => {
+			const file: TFile = (leaf.view as any).file;
+			if (file?.path === fileName) {
+				this.app.workspace.revealLeaf(leaf);
+				if (leaf.view instanceof MarkdownView) {
+					leaf.view.editor.focus();
+				}
+				found = true;
+
+				console.log('FOUND A LEAF!', leaf);
+				return; // don't keep looking
+			}
+		});
+
+		// Case: there isn't already a tab open with this file
+		if (!found) {
+			/*
+			docs:
+			https://marcus.se.net/obsidian-plugin-docs/reference/typescript/classes/Workspace#openlinktext
+			openLinkText(
+				linktext: string,
+				sourcePath: string,
+				newLeaf?: PaneType | boolean, // PaneType = 'tab' | 'split' | 'window'; // 2023-01-28: out of date docs. "Argument of type 'string' is not assignable to parameter of type 'boolean'"
+				openViewState?: OpenViewState // no idea. https://marcus.se.net/obsidian-plugin-docs/reference/typescript/interfaces/OpenViewState
+				)
+			*/
+			this.app.workspace.openLinkText(fileName, "", true);
 		}
 	}
 }
