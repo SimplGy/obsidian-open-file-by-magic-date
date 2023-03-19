@@ -28,7 +28,7 @@
 }
 
 .modal .open-file-by-magic-date .add-btn {
-  margin-left: 80px; /* align with inputs */
+  margin-left: 7rem; /* align with inputs */
 }
 
 .modal .open-file-by-magic-date .setting-item {
@@ -46,7 +46,7 @@
 }
 
 .modal .open-file-by-magic-date .setting-item-info {
-  width: 80px;
+  width: 7rem;
   flex-grow: 0;
   margin-top: 6px; /* align with input box */
 }

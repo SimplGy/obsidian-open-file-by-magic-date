@@ -50,6 +50,7 @@ npm run dev
 ### TODOs
 
 - [ ] Support multiple files, different hotkeys for each
+- [ ] handle removing a file, and then removing the associated command
 - [x] Fix: the hotkey does not rename correctly when you edit the path (requires Obsidian restart)
 - [x] Fix: the hotkey does not stick around correctly when you edit the path (requires choosing a hotkey again after restart)
 - [x] Detect when the file exists, to help people check their syntax easily. ([example implementation](https://github.com/SilentVoid13/Templater/commit/e4273b706465df012648b8a0163018f4925b5808) of file.exists from the templater plugin)

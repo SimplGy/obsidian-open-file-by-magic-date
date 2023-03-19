@@ -16,6 +16,19 @@ const DAYS = {
 	sun: 7,
 }
 
+const ICONS = [
+	'🔮',
+	'💎',
+	'🍏',
+	'🌼',
+	'🍎',
+	'💜',
+	'🌀',
+	'🐉',
+	'⭐',
+	'🚗',
+]
+
 interface MagicFileHotkeySettings {
 	files: string[];
 	useExistingPane: boolean;
@@ -57,19 +70,29 @@ export default class MagicFileHotkeyPlugin extends Plugin {
 	}
 
 	resetCommands() {
-		for (const fileNameSpec of this.settings.files) {
-
-			const fileNameSpecNoExt = fileNameSpec.substring(0, fileNameSpec.lastIndexOf("."));
+		for (let i = 0; i < FILE_LIMIT; i++) {
+			const id = `open-file-${i}`; // should not change over time. app name automatically added to prefix
+			const fileNameSpec = (this.settings.files[i] || '').trim();
+			// const fileNameSpecNoExt = fileNameSpec.substring(0, fileNameSpec.lastIndexOf(".")) || fileNameSpec;
+			const egName = lockInDate(fileNameSpec);
 
 			// repeatedly calling with the same ID appears to be effectively an "update" operation
-			this.addCommand({
-				id: 'open-by-magic-date', // should not change over time
-				name: `Open '${fileNameSpecNoExt}'`,
-				callback: () => {
-					const fileName = lockInDate(fileNameSpec);
-					this.openFile(fileName);
-				}
-			});
+			if (fileNameSpec) {
+				this.addCommand({
+					id,
+					name: `${i+1} ${ICONS[i]}  '${egName}'`,
+					callback: () => {
+						const fileName = lockInDate(fileNameSpec);
+						this.openFile(fileName);
+					},
+					// doesn't prevent from showing as an available hotkey:
+					// checkCallback: (checking) => {
+					// 	if (!fileNameSpec) return false; // not available
+					// 	return true;
+					// }
+				});
+			}
+			// TODO: remove commands
 		}
 	}
 
@@ -90,7 +113,7 @@ export default class MagicFileHotkeyPlugin extends Plugin {
 				}
 				found = true;
 
-				console.log('FOUND A LEAF!', leaf);
+				// console.log('FOUND A LEAF!', leaf);
 				return; // don't keep looking
 			}
 		});
@@ -172,10 +195,10 @@ class SettingsTab extends PluginSettingTab {
 		`;
 	}
 
-	renderSettingsRow(index: number) {
-		const curVal = this.plugin.settings.files[index];
+	renderSettingsRow(idx: number) {
+		const curVal = this.plugin.settings.files[idx];
 
-		const setting = new Setting(this.containerEl).setName(`File ${index + 1}`);		
+		const setting = new Setting(this.containerEl).setName(`${ICONS[idx]}  file:`);		
 		setting.controlEl.addClass('flex-kids-y');
 		setting.controlEl.addClass('flex-start');
 		setting.addText(cb => {
@@ -193,7 +216,7 @@ class SettingsTab extends PluginSettingTab {
 
 		function onChange(value) {
 			renderValidation(value, outputEl);
-			this.onFileSettingChanged(index, value);
+			this.onFileSettingChanged(idx, value);
 		}
 
 		// init the validation state
