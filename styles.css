@@ -1,0 +1,52 @@
+
+
+/* Settings window */
+
+.modal .open-file-by-magic-date input {
+  width: 100%;
+}
+
+.modal .open-file-by-magic-date .setting-item {
+  padding-bottom: 4px;
+}
+
+.modal .open-file-by-magic-date .info-tips {
+  margin-top: 0;
+}
+
+.open-file-by-magic-date .margin-top {
+  margin-top: 20px;
+}
+
+.flex-kids-y {
+  display: flex;
+  flex-direction: column;
+}
+
+.flex-start {
+  align-items: flex-start;
+}
+
+.modal .open-file-by-magic-date .add-btn {
+  margin-left: 80px; /* align with inputs */
+}
+
+.modal .open-file-by-magic-date .setting-item {
+  align-items: flex-start;
+  border: none;
+}
+
+.modal .open-file-by-magic-date .add-row .setting-item-control {
+  justify-content: flex-start;
+}
+
+.modal .open-file-by-magic-date .add-row {
+  border-top: 1px solid var(--background-modifier-border);
+  margin-top: 10px;
+}
+
+.modal .open-file-by-magic-date .setting-item-info {
+  width: 80px;
+  flex-grow: 0;
+  margin-top: 6px; /* align with input box */
+}

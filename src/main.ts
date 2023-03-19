@@ -1,8 +1,9 @@
 import { App, MarkdownView, Plugin, PluginSettingTab, Setting, TFile, moment } from 'obsidian';
 
-const DESCRIPTION_TEXT = `Use curly brackets to add date formats. eg: "{YYYY-MM-DD}". Supports anything Moment.js library.
-Additionally accepts a special format to indicate "prior monday". eg: "{mon:YYYY-MM-DD}"
-Include the '.md' extension in your filename if you use that.`;
+
+
+// How many files are allowed to be configured?
+const FILE_LIMIT = 10;
 
 // iso weekday spec
 const DAYS = {
@@ -124,67 +125,117 @@ class SettingsTab extends PluginSettingTab {
 	}
 
 	display() {
+		// limit number of files allowed
+		this.plugin.settings.files = this.plugin.settings.files.slice(0, FILE_LIMIT);
+		this.plugin.saveSettings();
+
 		// remove empty entries
 		// this.plugin.settings.files = this.plugin.settings.files.filter(file => file != null && file != "");
-		// this.plugin.saveSettings();
 
 		let { containerEl } = this;
 		containerEl.empty();
+		const className = String(this.plugin.manifest.name).toLowerCase().replace(/\s/g, '-');
+		containerEl.addClass(className);
 		containerEl.createEl("h2", { text: this.plugin.manifest.name });
+
+		const fileCount = this.plugin.settings.files.length || 1; // at least one, always.
+
+		for (let i = 0; i < fileCount; i++) {
+			this.renderSettingsRow(i);
+		}
+
+		if (this.plugin.settings.files.length < FILE_LIMIT) {
+			new Setting(this.containerEl).addButton(cb => {
+				cb
+					// .setButtonText('Add another file') // can't have both icon and text?
+					.setTooltip('Add another file')
+					.setIcon('plus')
+					.onClick(onClickAdd.bind(this))
+					;
+			}).setClass('add-row');
+		}
 		
-		const index = 0; // only one file targeted by this plugin, for now
+		function onClickAdd() {
+			this.plugin.settings.files.push(''); // new empty file spec
+			this.plugin.saveSettings();
+			this.display();
+		}
+		
+		containerEl.createEl("h2", { text: 'Tips', cls: 'margin-top' });
+		// add an explanation, but with more room
+		const descEl = containerEl.createEl('div', { cls: 'setting-item-description info-tips' }); // small text
+		descEl.innerHTML = `
+		<p>Use curly brackets to add date formats. eg: "{YYYY-MM-DD}".</p>
+		<p>Any syntax from the <a href="https://momentjscom.readthedocs.io/en/latest/moment/04-displaying/01-format/">moment.js</a> library will work.</p>
+		<p>Additionally,  accepts a special format to indicate "prior monday". eg: "{mon:YYYY-MM-DD}"</p>
+		<p>Include the '.md' extension in your filename if you use that.</p>
+		`;
+	}
+
+	renderSettingsRow(index: number) {
 		const curVal = this.plugin.settings.files[index];
 
-		const setting = new Setting(this.containerEl)
-			.setName("Open this file")		
-			.addText(cb => {
-				cb
-					.setPlaceholder("dir/YYYY-MM-DD.md")
-					.setValue(curVal)
-					.onChange(value => {
-						this.plugin.settings.files[index] = value;
-
-						// Tell user how/if we parsed it
-						const parsedName = lockInDate(value);
-						outputPrinter.innerText = `"${parsedName}"`;
-
-						// Nothing Parsed, so we aren't using the date syntax
-						if (parsedName === value) {
-							outputPrinter.style.color = 'inherit';
-
-						// Parser changed something, so date syntax is active
-						} else {
-							// colored purple if date syntax is active
-							outputPrinter.style.color = 'var(--text-accent)';
-						}
-						
-						// Checkmark if it also matches an existing file
-						// this is a little funny, I think because Obsidian can match filenames with and without directories
-						if(exists(parsedName)) {
-							outputPrinter.innerText = `"${parsedName}" ✅`;
-						}
-
-						this.plugin.saveSettings();
-					});
-			});
-		// wider text field
-		setting.controlEl.querySelector('input').style.width = '100%';
-		setting.settingEl.style.paddingBottom = '4px';
+		const setting = new Setting(this.containerEl).setName(`File ${index + 1}`);		
+		setting.controlEl.addClass('flex-kids-y');
+		setting.controlEl.addClass('flex-start');
+		setting.addText(cb => {
+			cb
+				.setPlaceholder("dir/{YYYY-MM-DD} file.md")
+				.setValue(curVal)
+				.onChange(onChange.bind(this));
+		});
 
 		// add an element to print out the computed path
-		const outputPrinter = document.createElement('div');
-		outputPrinter.className = 'setting-item-description'; // small, muted
-		outputPrinter.innerText = lockInDate(curVal);
-		outputPrinter.style.width = '50%';
-		outputPrinter.style.marginLeft = '46%'; // a pain to line up
-		this.containerEl.appendChild(outputPrinter);
+		const outputEl = setting.controlEl.createEl('div', {
+			text: lockInDate(curVal),
+			cls: 'setting-item-description', // small, muted
+		});
 
+		function onChange(value) {
+			renderValidation(value, outputEl);
+			this.onFileSettingChanged(index, value);
+		}
+
+		// init the validation state
+		// TODO: better way to get value of a setting?
+		const curVal = setting.components[0].getValue();
+		renderValidation(curVal, outputEl);
+	}
+
+	// whenever the user types and changes the file spec setting
+	onFileSettingChanged(idx, value) {
+		this.plugin.settings.files[idx] = value;
 		
-		// add an explanation, but with more room
-		const descEl = document.createElement('p');
-		descEl.className = 'setting-item-description'; // muted
-		descEl.innerText = DESCRIPTION_TEXT;
-		this.containerEl.appendChild(descEl);
+		// remove any empty files and save:
+		this.plugin.settings.files = this.plugin.settings.files.map(str => (str || '').trim()).filter(Boolean);
+		this.plugin.saveSettings();
+	}
+
+	
+}
+
+// For a given value, 
+function renderValidation(value, outputEl) {
+	if (!value) return outputEl.innerText = '';
+
+	// Tell user how/if we parsed it
+	const parsedName = lockInDate(value);
+	outputEl.innerText = `"${parsedName}"`;
+
+	// Nothing Parsed, so we aren't using the date syntax
+	if (parsedName === value) {
+		outputEl.style.color = 'inherit';
+
+	// Parser changed something, so date syntax is active
+	} else {
+		// colored purple if date syntax is active
+		outputEl.style.color = 'var(--text-accent)';
+	}
+	
+	// Checkmark if it also matches an existing file
+	// this is a little funny, I think because Obsidian can match filenames with and without directories
+	if(exists(parsedName)) {
+		outputEl.innerText = `"${parsedName}" ✅`;
 	}
 }
 
