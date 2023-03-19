@@ -4,16 +4,20 @@ Plugin for [Obsidian](https://obsidian.md)
 
 ## Summary
 
-Lets you open a specific file that matches a flexible date pattern.
+A quick way to open files that match a date pattern.
 
-I use this to open the note which the date of the "most recent monday", but you could use it for any datestamped file.
+If you're trying to open a "weekly note" file or something similar, you're in the right place. This plugin has some flexibility that I couldn't find elsewhere.
+
+My use case: Open the note for "most recent monday". But, you can use it for any datestamped filename.
 
 ![screenshot](./magic-date-screenshot.png)
 
 ## Use Cases
 
-- [x] open a file with a specific date pattern like `{YYYY-MM-DD} foo.md` with a single keypress
-- [x] Support specifying "the most recent monday" in these patterns for the weekly note use case. eg: `weekly notes/{mon: YYYY-MM-DD} week.md` with a single keypress
+- [x] Open a file by any date pattern you can think of -- eg: `{YYYY-MM-DD} foo.md`
+- [x] Open files with a single keystroke
+- [x] Support anchoring on arbitrary days of the week, like "most recent monday". eg: `weekly notes/{mon: YYYY-MM-DD} week.md`
+- [x] Support multiple files. eg: `{MMMM} monthly note` and `{YYYY} yearly note`
 - [ ] Support specifying a search query, then open the first file that matches the query
 
 ## Installing
@@ -49,8 +53,8 @@ npm run dev
 
 ### TODOs
 
-- [ ] Support multiple files, different hotkeys for each
-- [ ] handle removing a file, and then removing the associated command
+- [x] Support multiple files, different hotkeys for each
+- [ ] when a filespec is removed, remove the associated hotkey command -- might not be possible
 - [x] Fix: the hotkey does not rename correctly when you edit the path (requires Obsidian restart)
 - [x] Fix: the hotkey does not stick around correctly when you edit the path (requires choosing a hotkey again after restart)
 - [x] Detect when the file exists, to help people check their syntax easily. ([example implementation](https://github.com/SilentVoid13/Templater/commit/e4273b706465df012648b8a0163018f4925b5808) of file.exists from the templater plugin)
@@ -60,6 +64,7 @@ npm run dev
 
 1. Update the version in `package.json` (only)
 2. `npm run version`
+3. `git push`
 
 > This will trigger `.github/workflows/release.yml`.
 > 
